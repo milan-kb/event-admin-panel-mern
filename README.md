@@ -113,3 +113,9 @@ Browser checks performed: event creation, editing date and venue, deletion, and 
 ## Submission
 
 Push both application folders, package manifests, lockfiles, and the required exam-only configuration to your GitHub repository. Confirm evaluator access and submit the repository URL before the instructor-confirmed cutoff. The supplied assessment text lists conflicting deadlines; confirm the actual submission time.
+
+## Hosted deployment
+
+`vercel.json` deploys the Vite frontend and Express backend together using Vercel Services (beta). `/api/*` routes to the backend; other paths route to the SPA. The hosted frontend calls the same domain, while local development continues to use the URLs in `.env`.
+
+The backend's hosted entry point is `backend/src/hosted.js`. Database connections are reused across requests. Configure `MONGO_URI` in Vercel's environment variables for the exam Atlas database. Atlas must permit connections from the hosted runtime.
