@@ -9,3 +9,5 @@ coverage/
 # The assessment requires these two files. Include only exam/test configuration.
 !frontend/.env
 !backend/.env
+.impeccable/
+

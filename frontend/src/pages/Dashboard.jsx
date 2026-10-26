@@ -1,12 +1,26 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import api from '../services/api.js';
+import Icon from '../components/Icon.jsx';
+import CalendarDate from '../components/CalendarDate.jsx';
 
-const displayDate = value => new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-const today = () => {
-  const date = new Date();
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const formatDate = (val) => {
+  if (!val) return '—';
+  const d = new Date(val);
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
 };
+
+function getTodayStr() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+    now.getDate()
+  ).padStart(2, '0')}`;
+}
 
 export default function Dashboard() {
   const location = useLocation();
@@ -16,90 +30,463 @@ export default function Dashboard() {
   const [notice, setNotice] = useState(location.state?.message || '');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
-  const [deleting, setDeleting] = useState('');
-  const [reload, setReload] = useState(0);
+  const [deletingId, setDeletingId] = useState('');
+  const [copiedId, setCopiedId] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
-    async function loadEvents() {
+
+    async function fetchEvents() {
       setLoading(true);
       setError('');
       try {
         const { data } = await api.get('/api/events', { signal: controller.signal });
-        if (!controller.signal.aborted) setEvents(data.events);
+        if (!controller.signal.aborted) {
+          setEvents(data.events || []);
+        }
       } catch (err) {
-        if (!controller.signal.aborted) setError(err.response?.data?.message || 'Could not load events. Check your connection and try again.');
+        if (!controller.signal.aborted) {
+          setError(
+            err.response?.data?.message ||
+              'Unable to load events from the database. Please check your connection.'
+          );
+        }
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
-    loadEvents();
-    return () => controller.abort();
-  }, [reload]);
 
-  async function removeEvent(event) {
-    if (!window.confirm(`Delete “${event.name}”? This cannot be undone.`)) return;
-    setDeleting(event._id);
+    fetchEvents();
+    return () => controller.abort();
+  }, [reloadKey]);
+
+  // Auto-dismiss notice after 5 seconds
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(''), 5000);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
+  const handleDelete = async (eventItem) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${eventItem.name}"? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(eventItem._id);
     setError('');
     setNotice('');
-    try {
-      await api.delete(`/api/events/${event._id}`);
-      setEvents(current => current.filter(item => item._id !== event._id));
-      setNotice(`${event.name} was deleted.`);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Could not delete the event. Please try again.');
-    } finally {
-      setDeleting('');
-    }
-  }
 
-  const currentDate = today();
-  const upcoming = events.filter(event => event.date.slice(0, 10) >= currentDate);
-  const registrations = events.reduce((sum, event) => sum + event.totalReg, 0);
+    try {
+      await api.delete(`/api/events/${eventItem._id}`);
+      setEvents((prev) => prev.filter((item) => item._id !== eventItem._id));
+      setNotice(`"${eventItem.name}" was successfully deleted.`);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete event. Please try again.');
+    } finally {
+      setDeletingId('');
+    }
+  };
+
+  const copyEventId = (id) => {
+    navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(''), 2000);
+  };
+
+  const todayStr = getTodayStr();
+  const upcomingEvents = events.filter((e) => e.date && e.date.slice(0, 10) >= todayStr);
+  const nextEvent = upcomingEvents[0];
+  const totalRegistrations = events.reduce((sum, e) => sum + (e.totalReg || 0), 0);
+
   const query = search.trim().toLowerCase();
-  const visible = events.filter(event => {
-    const matchesSearch = `${event.name} ${event.location} ${event._id}`.toLowerCase().includes(query);
-    const isUpcoming = event.date.slice(0, 10) >= currentDate;
-    return matchesSearch && (filter === 'all' || (filter === 'upcoming' ? isUpcoming : !isUpcoming));
+  const filteredEvents = events.filter((e) => {
+    const matchSearch =
+      !query ||
+      (e.name && e.name.toLowerCase().includes(query)) ||
+      (e.location && e.location.toLowerCase().includes(query)) ||
+      (e.description && e.description.toLowerCase().includes(query)) ||
+      (e._id && e._id.toLowerCase().includes(query));
+
+    const isUpcoming = e.date && e.date.slice(0, 10) >= todayStr;
+    const matchFilter =
+      filter === 'all' || (filter === 'upcoming' ? isUpcoming : !isUpcoming);
+
+    return matchSearch && matchFilter;
   });
 
   return (
-    <section className="dashboard" aria-labelledby="dashboard-title">
-      <div className="page-heading">
-        <div><p className="eyebrow">YOUR EVENT WORKSPACE</p><h1 id="dashboard-title">Make room for what’s next.</h1><p className="subtitle">A clear view of your events, venues, and registrations.</p></div>
-        <Link to="/events/new" className="button primary"><span aria-hidden="true">＋</span> Add Event</Link>
-      </div>
-
-      <div className="stats-grid">
-        <div className="stat"><span className="stat-label">Total events</span><strong>{loading || error ? '—' : events.length}</strong><span className="stat-detail">Across your calendar</span></div>
-        <div className="stat"><span className="stat-label">Upcoming events</span><strong>{loading || error ? '—' : upcoming.length}</strong><span className="stat-detail">Today and beyond</span></div>
-        <div className="stat accent"><span className="stat-label">Total registrations</span><strong>{loading || error ? '—' : registrations}</strong><span className="stat-detail">Across all events</span></div>
-      </div>
-
-      {notice && <div className="notice success" role="status"><span>{notice}</span><button type="button" onClick={() => setNotice('')} aria-label="Dismiss message">×</button></div>}
-      {error && <div className="notice error" role="alert"><span>{error}</span><button type="button" onClick={() => setReload(value => value + 1)}>Retry</button></div>}
-
-      <div className="panel">
-        <div className="panel-heading"><div><h2>Event calendar <span className="count">{events.length}</span></h2><p>Plan it. Update it. Keep everyone on the same page.</p></div><span className="section-tag">ALL YOUR EVENTS</span></div>
-        <div className="toolbar">
-          <div className="filter-tabs" role="group" aria-label="Filter events">{[['all', 'All events'], ['upcoming', 'Upcoming'], ['past', 'Past']].map(([value, label]) => <button key={value} type="button" aria-pressed={filter === value} className={filter === value ? 'selected' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div>
-          <label className="search"><span className="sr-only">Search by name, venue, or event ID</span><input type="search" placeholder="Search events or venues…" value={search} onChange={event => setSearch(event.target.value)} /></label>
+    <div className="dashboard-container">
+      {/* Toast Notice */}
+      {notice && (
+        <div className="apple-toast success" role="status">
+          <div className="toast-icon">
+            <Icon name="check" size={15} />
+          </div>
+          <span className="toast-message">{notice}</span>
+          <button
+            type="button"
+            className="toast-close"
+            onClick={() => setNotice('')}
+            aria-label="Close"
+          >
+            <Icon name="close" size={13} />
+          </button>
         </div>
-        {loading ? <div className="empty-state" role="status">Loading your events…</div> : error ? <div className="empty-state">Events are temporarily unavailable. Use Retry above.</div> : visible.length === 0 ? <div className="empty-state"><span className="empty-icon" aria-hidden="true">▦</span><h3>{events.length ? 'No matching events' : 'Your next event starts here'}</h3><p>{events.length ? 'Try another search or show all events.' : 'Add your first event to start building your calendar.'}</p>{events.length ? <button className="button secondary" onClick={() => { setSearch(''); setFilter('all'); }}>Clear filters</button> : <Link className="button primary" to="/events/new">Add Event</Link>}</div> : <>
-          <div className="table-scroll" role="region" aria-label="Events table" tabIndex={0}>
-            <table><caption className="sr-only">Event details and management actions</caption><thead><tr><th scope="col">Event ID</th><th scope="col">Event name</th><th scope="col">Event date</th><th scope="col">Venue</th><th scope="col" className="number">Total registrations</th><th scope="col">Actions</th></tr></thead>
-              <tbody>{visible.map(event => <tr key={event._id}>
-                <td><span className="event-id">{event._id}</span></td>
-                <td><span className="event-name">{event.name}</span><span className="event-description">{event.description}</span></td>
-                <td><time dateTime={event.date.slice(0, 10)}>{displayDate(event.date)}</time><span className={`date-status ${event.date.slice(0, 10) < currentDate ? 'past' : ''}`}>{event.date.slice(0, 10) < currentDate ? 'Past event' : 'Upcoming'}</span></td>
-                <td className="venue-cell">{event.location}</td><td className="number"><span className="registration-count">{event.totalReg}</span></td>
-                <td><div className="row-actions"><Link className="update-link" to={`/events/${event._id}/edit`} aria-label={`Update ${event.name}`}>Update</Link><button className="delete-button" disabled={Boolean(deleting)} onClick={() => removeEvent(event)} aria-label={`Delete ${event.name}`}>{deleting === event._id ? 'Deleting…' : 'Delete'}</button></div></td>
-              </tr>)}</tbody>
+      )}
+
+      {error && (
+        <div className="apple-toast error" role="alert">
+          <div className="toast-icon">
+            <Icon name="close" size={15} />
+          </div>
+          <span className="toast-message">{error}</span>
+          <button
+            type="button"
+            className="toast-retry"
+            onClick={() => setReloadKey((k) => k + 1)}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* Page Heading */}
+      <section className="apple-hero-header">
+        <div className="header-text">
+          <h1 className="apple-title">Event Dashboard</h1>
+          <p className="apple-subtitle">
+            Manage your schedule, venues, and live registration counts.
+          </p>
+        </div>
+        <Link to="/events/new" className="apple-btn-primary">
+          <Icon name="plus" size={16} />
+          <span>Add Event</span>
+        </Link>
+      </section>
+
+      {/* Metrics Cards Grid */}
+      <section className="apple-metrics-grid" aria-label="Event statistics">
+        <div className="metric-card spotlight-card">
+          {loading ? (
+            <div className="spotlight-loading">
+              <div className="skeleton-line sm"></div>
+              <div className="skeleton-line lg"></div>
+              <div className="skeleton-line md"></div>
+            </div>
+          ) : nextEvent && !error ? (
+            <div className="spotlight-content">
+              <CalendarDate value={nextEvent.date} />
+              <div className="spotlight-info">
+                <span className="spotlight-tag">Next Upcoming Event</span>
+                <h3 className="spotlight-name">{nextEvent.name}</h3>
+                <p className="spotlight-meta">
+                  <span>{formatDate(nextEvent.date)}</span>
+                  <span className="meta-dot">·</span>
+                  <span className="venue-meta">
+                    <Icon name="pin" size={13} />
+                    {nextEvent.location}
+                  </span>
+                </p>
+                <Link to={`/events/${nextEvent._id}/edit`} className="spotlight-link">
+                  <span>Update Details</span>
+                  <Icon name="arrow" size={13} />
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="spotlight-empty">
+              <div className="empty-icon-wrap">
+                <Icon name="calendar" size={26} />
+              </div>
+              <div>
+                <h3>No upcoming events scheduled</h3>
+                <p>Create an event to start tracking registrations.</p>
+                <Link to="/events/new" className="spotlight-link">
+                  <span>Add First Event</span>
+                  <Icon name="arrow" size={13} />
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="metric-card stat-card">
+          <div className="stat-header">
+            <span className="stat-label">Total Events</span>
+            <div className="stat-icon">
+              <Icon name="calendar" size={16} />
+            </div>
+          </div>
+          <span className="stat-value">{loading ? '—' : events.length}</span>
+          <span className="stat-sub">Active in database</span>
+        </div>
+
+        <div className="metric-card stat-card">
+          <div className="stat-header">
+            <span className="stat-label">Upcoming</span>
+            <div className="stat-icon green">
+              <Icon name="sparkle" size={16} />
+            </div>
+          </div>
+          <span className="stat-value">{loading ? '—' : upcomingEvents.length}</span>
+          <span className="stat-sub">Scheduled ahead</span>
+        </div>
+
+        <div className="metric-card stat-card">
+          <div className="stat-header">
+            <span className="stat-label">Registrations</span>
+            <div className="stat-icon blue">
+              <Icon name="users" size={16} />
+            </div>
+          </div>
+          <span className="stat-value">{loading ? '—' : totalRegistrations}</span>
+          <span className="stat-sub">Total attendees</span>
+        </div>
+      </section>
+
+      {/* Table Section */}
+      <section className="apple-table-card" aria-labelledby="table-title">
+        {/* Table Toolbar */}
+        <div className="table-toolbar">
+          <div className="toolbar-left">
+            <h2 id="table-title" className="toolbar-title">
+              All Events
+            </h2>
+            <span className="event-count-badge">
+              {loading ? 'Loading…' : `${events.length} total`}
+            </span>
+          </div>
+
+          <div className="toolbar-right">
+            <div className="segmented-control" role="group" aria-label="Filter events by date">
+              {[
+                ['all', 'All'],
+                ['upcoming', 'Upcoming'],
+                ['past', 'Past'],
+              ].map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`segment-btn ${filter === key ? 'active' : ''}`}
+                  onClick={() => setFilter(key)}
+                  aria-pressed={filter === key}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="apple-search-box">
+              <Icon name="search" size={15} />
+              <input
+                type="search"
+                placeholder="Search events, venues..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label="Search events"
+              />
+              {search && (
+                <button
+                  type="button"
+                  className="search-clear"
+                  onClick={() => setSearch('')}
+                  aria-label="Clear search"
+                >
+                  <Icon name="close" size={12} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Table Content */}
+        {loading ? (
+          <div className="table-skeleton-wrap" role="status">
+            <span className="sr-only">Loading events...</span>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="skeleton-row">
+                <span className="sk-cell w-20"></span>
+                <span className="sk-cell w-30"></span>
+                <span className="sk-cell w-15"></span>
+                <span className="sk-cell w-15"></span>
+                <span className="sk-cell w-10"></span>
+                <span className="sk-cell w-10"></span>
+              </div>
+            ))}
+          </div>
+        ) : filteredEvents.length === 0 ? (
+          <div className="apple-empty-state">
+            <div className="empty-state-icon">
+              <Icon name={events.length ? 'search' : 'calendar'} size={32} />
+            </div>
+            <h3>{events.length ? 'No matching events found' : 'No events created yet'}</h3>
+            <p>
+              {events.length
+                ? 'Try adjusting your search query or switching the date filter.'
+                : 'Get started by creating your first event using the button below.'}
+            </p>
+            {events.length ? (
+              <button
+                type="button"
+                className="apple-btn-secondary"
+                onClick={() => {
+                  setSearch('');
+                  setFilter('all');
+                }}
+              >
+                Reset Filters
+              </button>
+            ) : (
+              <Link to="/events/new" className="apple-btn-primary">
+                <Icon name="plus" size={16} />
+                <span>Create Event</span>
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="table-responsive">
+            <table className="apple-table">
+              <thead>
+                <tr>
+                  <th scope="col" className="col-id">
+                    Event ID
+                  </th>
+                  <th scope="col" className="col-name">
+                    Event Name
+                  </th>
+                  <th scope="col" className="col-date">
+                    Event Date
+                  </th>
+                  <th scope="col" className="col-venue">
+                    Venue
+                  </th>
+                  <th scope="col" className="col-regs text-center">
+                    Total Registrations
+                  </th>
+                  <th scope="col" className="col-actions text-right">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEvents.map((item) => {
+                  const isPast = item.date && item.date.slice(0, 10) < todayStr;
+                  const isBeingDeleted = deletingId === item._id;
+
+                  return (
+                    <tr key={item._id} className={isBeingDeleted ? 'row-deleting' : ''}>
+                      {/* 1. Event ID */}
+                      <td className="col-id">
+                        <button
+                          type="button"
+                          className="id-pill"
+                          onClick={() => copyEventId(item._id)}
+                          title="Click to copy full ID"
+                        >
+                          <span className="id-hash">#</span>
+                          <span className="id-short">{item._id.slice(-6)}</span>
+                          <Icon name={copiedId === item._id ? 'check' : 'copy'} size={11} />
+                        </button>
+                        {copiedId === item._id && <span className="copy-tooltip">Copied!</span>}
+                      </td>
+
+                      {/* 2. Event Name & Description */}
+                      <td className="col-name">
+                        <div className="event-info">
+                          <strong className="event-title">{item.name}</strong>
+                          {item.description && (
+                            <p className="event-desc-snippet" title={item.description}>
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* 3. Event Date */}
+                      <td className="col-date">
+                        <div className="date-block">
+                          <time dateTime={item.date ? item.date.slice(0, 10) : ''}>
+                            {formatDate(item.date)}
+                          </time>
+                          <span className={`date-badge ${isPast ? 'past' : 'upcoming'}`}>
+                            <span className="badge-dot" aria-hidden="true"></span>
+                            {isPast ? 'Past' : 'Upcoming'}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* 4. Venue */}
+                      <td className="col-venue">
+                        <div className="venue-cell">
+                          <Icon name="pin" size={14} />
+                          <span title={item.location}>{item.location}</span>
+                        </div>
+                      </td>
+
+                      {/* 5. Total Registrations */}
+                      <td className="col-regs text-center">
+                        <span className="reg-badge">
+                          <Icon name="users" size={13} />
+                          <strong className="reg-count">{item.totalReg || 0}</strong>
+                        </span>
+                      </td>
+
+                      {/* 6. Actions (Update & Delete) */}
+                      <td className="col-actions text-right">
+                        <div className="action-buttons-group">
+                          <Link
+                            to={`/events/${item._id}/edit`}
+                            className="btn-action edit"
+                            aria-label={`Update ${item.name}`}
+                          >
+                            <Icon name="edit" size={13} />
+                            <span>Update</span>
+                          </Link>
+
+                          <button
+                            type="button"
+                            className="btn-action delete"
+                            disabled={isBeingDeleted}
+                            onClick={() => handleDelete(item)}
+                            aria-label={`Delete ${item.name}`}
+                          >
+                            <Icon name="trash" size={13} />
+                            <span>{isBeingDeleted ? 'Deleting…' : 'Delete'}</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
             </table>
-          </div><div className="table-footer">Showing {visible.length} of {events.length} events<span>Dates shown as scheduled</span></div>
-        </>}
-      </div>
-      <p className="workspace-note">A little organization. A lot of possibility.</p>
-    </section>
+          </div>
+        )}
+
+        {filteredEvents.length > 0 && (
+          <div className="table-footer-info">
+            <span>
+              Showing {filteredEvents.length} of {events.length}{' '}
+              {events.length === 1 ? 'event' : 'events'}
+            </span>
+          </div>
+        )}
+      </section>
+
+      {/* Footer */}
+      <footer className="apple-footer">
+        <div className="footer-content">
+          <div className="footer-brand">
+            <Icon name="appleLogo" size={14} />
+            <span>Event Registration Admin Panel</span>
+          </div>
+          <span className="footer-tech">MERN Stack · MongoDB Atlas · Express · React · Node</span>
+        </div>
+      </footer>
+    </div>
   );
 }

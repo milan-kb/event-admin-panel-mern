@@ -1,14 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../services/api.js';
+import Icon from '../components/Icon.jsx';
+import CalendarDate from '../components/CalendarDate.jsx';
 
-const emptyForm = { name: '', description: '', date: '', location: '' };
+const initialForm = {
+  name: '',
+  description: '',
+  date: '',
+  location: '',
+};
 
 export default function EventForm() {
   const { id } = useParams();
+  const isEditing = Boolean(id);
   const navigate = useNavigate();
-  const [form, setForm] = useState(emptyForm);
-  const [loading, setLoading] = useState(Boolean(id));
+
+  const [form, setForm] = useState(initialForm);
+  const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [loadFailed, setLoadFailed] = useState(false);
@@ -17,73 +26,265 @@ export default function EventForm() {
     const controller = new AbortController();
     setError('');
     setLoadFailed(false);
-    if (!id) {
-      setForm(emptyForm);
+
+    if (!isEditing) {
+      setForm(initialForm);
       setLoading(false);
       return () => controller.abort();
     }
-    async function loadEvent() {
+
+    async function loadEventData() {
       setLoading(true);
       try {
         const { data } = await api.get(`/api/events/${id}`, { signal: controller.signal });
-        if (!controller.signal.aborted) setForm({ name: data.event.name, description: data.event.description, date: data.event.date.slice(0, 10), location: data.event.location });
+        if (!controller.signal.aborted && data.event) {
+          setForm({
+            name: data.event.name || '',
+            description: data.event.description || '',
+            date: data.event.date ? data.event.date.slice(0, 10) : '',
+            location: data.event.location || '',
+          });
+        }
       } catch (err) {
         if (!controller.signal.aborted) {
           setLoadFailed(true);
-          setError(err.response?.data?.message || 'Could not load this event. Return to the dashboard and try again.');
+          setError(
+            err.response?.data?.message || 'Could not load event details. Please return to the dashboard.'
+          );
         }
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
-    loadEvent();
+
+    loadEventData();
     return () => controller.abort();
-  }, [id]);
+  }, [id, isEditing]);
 
-  function changeField(event) {
-    const { name, value } = event.target;
-    setForm(current => ({ ...current, [name]: value }));
-  }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
-  async function saveEvent(event) {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (saving) return;
-    if (!form.name.trim() || !form.description.trim() || !form.location.trim() || !form.date) {
-      setError('Please complete all four fields.');
+
+    if (!form.name.trim() || !form.description.trim() || !form.date || !form.location.trim()) {
+      setError('Please fill in all required fields (Event Name, Description, Date, and Venue).');
       return;
     }
+
     setSaving(true);
     setError('');
+
     try {
-      if (id) await api.put(`/api/events/${id}`, form);
-      else await api.post('/api/events', form);
-      navigate('/', { state: { message: id ? 'Event updated successfully.' : 'Your event was created successfully.' } });
+      if (isEditing) {
+        await api.put(`/api/events/${id}`, form);
+        navigate('/', { state: { message: `"${form.name.trim()}" was updated successfully.` } });
+      } else {
+        await api.post('/api/events', form);
+        navigate('/', { state: { message: `"${form.name.trim()}" was created successfully.` } });
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not save the event. Please try again.');
+      setError(err.response?.data?.message || 'Failed to save event. Please check inputs and try again.');
     } finally {
       setSaving(false);
     }
-  }
+  };
 
   return (
-    <section className="form-page" aria-labelledby="event-form-title">
-      <Link className="back-link" to="/">← Back to Dashboard</Link>
-      <div className="page-heading"><div><p className="eyebrow">{id ? 'KEEP THE DETAILS CURRENT' : 'BRING PEOPLE TOGETHER'}</p><h1 id="event-form-title">{id ? 'Update Event' : 'Add Event'}</h1><p className="subtitle">{id ? 'A change of plans? Update the details below.' : 'Give your next gathering a place on the calendar.'}</p></div></div>
-      <div className="form-layout">
-        <div className="panel form-panel">
-          <div className="panel-heading"><div><h2>Event details</h2><p>All four fields are required.</p></div></div>
-          {error && <div className="notice error form-notice" role="alert">{error}</div>}
-          {loading ? <p className="empty-state" role="status">Loading event details…</p> : loadFailed ? <div className="empty-state"><Link className="button secondary" to="/">Return to Dashboard</Link></div> : <form onSubmit={saveEvent}>
-            <fieldset disabled={saving}>
-              <div className="field"><label htmlFor="name">Event Name <span aria-hidden="true">*</span></label><input id="name" name="name" required maxLength={120} value={form.name} onChange={changeField} placeholder="e.g. Community Design Meetup" autoComplete="off" /></div>
-              <div className="field"><label htmlFor="description">Event Description <span aria-hidden="true">*</span></label><textarea id="description" name="description" rows={5} required maxLength={3000} value={form.description} onChange={changeField} placeholder="What’s the event about? What can attendees expect?" /><span className="field-hint">A short overview to help identify your event.</span></div>
-              <div className="form-columns"><div className="field"><label htmlFor="date">Event Date <span aria-hidden="true">*</span></label><input id="date" name="date" type="date" required value={form.date} onChange={changeField} onInput={changeField} /></div><div className="field"><label htmlFor="location">Venue <span aria-hidden="true">*</span></label><input id="location" name="location" required maxLength={160} value={form.location} onChange={changeField} placeholder="e.g. Main Auditorium" /></div></div>
-              <div className="form-actions"><button className="button primary" type="submit">{saving ? 'Saving…' : id ? 'Update Event' : 'Create Event'}</button><Link className="button secondary" to="/">Cancel</Link></div>
-            </fieldset>
-          </form>}
-        </div>
-        <aside className="form-aside"><span className="aside-symbol" aria-hidden="true">✳</span><p className="eyebrow">GOOD EVENTS START WITH THE DETAILS</p><h2>A name. A date.<br />A place to meet.</h2><p>Keep the event name clear and the venue specific. You can come back and update these details anytime.</p><div className="aside-note"><strong>Registrations</strong><p>New events start at zero registrations. Each event’s total appears on the dashboard.</p></div></aside>
+    <div className="form-page-container">
+      {/* Back button */}
+      <div className="form-nav-back">
+        <Link to="/" className="apple-back-link">
+          <Icon name="back" size={15} />
+          <span>Back to Dashboard</span>
+        </Link>
       </div>
-    </section>
+
+      {/* Heading */}
+      <section className="form-hero-header">
+        <h1 className="apple-title">{isEditing ? 'Update Event' : 'Add New Event'}</h1>
+        <p className="apple-subtitle">
+          {isEditing
+            ? 'Modify details, venue, or schedule for this existing event.'
+            : 'Fill in the event credentials below to publish it to the dashboard.'}
+        </p>
+      </section>
+
+      {/* Error alert */}
+      {error && (
+        <div className="apple-toast error" role="alert">
+          <div className="toast-icon">
+            <Icon name="close" size={15} />
+          </div>
+          <span className="toast-message">{error}</span>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="apple-card form-loading-card">
+          <div className="skeleton-line lg"></div>
+          <div className="skeleton-line md"></div>
+          <div className="skeleton-line sm"></div>
+        </div>
+      ) : loadFailed ? (
+        <div className="apple-card empty-card text-center">
+          <h3>Event not found</h3>
+          <p>The requested event could not be found or loaded.</p>
+          <Link to="/" className="apple-btn-primary">
+            Return to Dashboard
+          </Link>
+        </div>
+      ) : (
+        <div className="form-layout-grid">
+          {/* Main Form */}
+          <div className="apple-card form-card">
+            <form onSubmit={handleSubmit} className="apple-event-form" noValidate>
+              {/* Field 1: Event Name */}
+              <div className="form-field-group">
+                <label htmlFor="name" className="field-label">
+                  Event Name <span className="req-star">*</span>
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  maxLength={120}
+                  className="apple-input"
+                  placeholder="e.g. Annual Tech Summit 2026"
+                  value={form.name}
+                  onChange={handleChange}
+                  autoFocus
+                />
+                <span className="field-hint">Give your event a clear, recognizable name.</span>
+              </div>
+
+              {/* Field 2: Event Description */}
+              <div className="form-field-group">
+                <label htmlFor="description" className="field-label">
+                  Event Description <span className="req-star">*</span>
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows={4}
+                  required
+                  maxLength={3000}
+                  className="apple-textarea"
+                  placeholder="Describe the schedule, key speakers, target audience, and agenda..."
+                  value={form.description}
+                  onChange={handleChange}
+                />
+                <span className="field-hint">Brief overview of what attendees should anticipate.</span>
+              </div>
+
+              {/* Fields 3 & 4: Date and Venue (2 columns) */}
+              <div className="form-row-two-col">
+                <div className="form-field-group">
+                  <label htmlFor="date" className="field-label">
+                    Event Date <span className="req-star">*</span>
+                  </label>
+                  <input
+                    id="date"
+                    name="date"
+                    type="date"
+                    required
+                    className="apple-input"
+                    value={form.date}
+                    onChange={handleChange}
+                  />
+                  <span className="field-hint">Scheduled date of occurrence.</span>
+                </div>
+
+                <div className="form-field-group">
+                  <label htmlFor="location" className="field-label">
+                    Venue <span className="req-star">*</span>
+                  </label>
+                  <input
+                    id="location"
+                    name="location"
+                    type="text"
+                    required
+                    maxLength={160}
+                    className="apple-input"
+                    placeholder="e.g. Main Auditorium, Block A"
+                    value={form.location}
+                    onChange={handleChange}
+                  />
+                  <span className="field-hint">Physical hall or virtual platform link.</span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="form-actions-bar">
+                <Link to="/" className="apple-btn-secondary">
+                  Cancel
+                </Link>
+                <button type="submit" className="apple-btn-primary" disabled={saving}>
+                  {saving ? (
+                    <span>Saving…</span>
+                  ) : (
+                    <>
+                      <Icon name="check" size={15} />
+                      <span>{isEditing ? 'Update Event' : 'Create Event'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Live Preview Card */}
+          <aside className="form-preview-aside" aria-label="Live event card preview">
+            <div className="preview-label">Live Card Preview</div>
+            <div className="apple-card live-ticket-card">
+              <div className="ticket-header">
+                {form.date ? (
+                  <CalendarDate value={form.date} />
+                ) : (
+                  <div className="calendar-date-placeholder">
+                    <Icon name="calendar" size={24} />
+                  </div>
+                )}
+                <div className="ticket-title-group">
+                  <span className="ticket-tag">{isEditing ? 'Editing Mode' : 'New Event'}</span>
+                  <h4 className="ticket-title">{form.name.trim() || 'Your Event Title Here'}</h4>
+                </div>
+              </div>
+
+              <div className="ticket-body">
+                <p className="ticket-desc">
+                  {form.description.trim() ||
+                    'Event description will dynamically preview here as you type in the form.'}
+                </p>
+
+                <div className="ticket-meta-row">
+                  <div className="ticket-meta-item">
+                    <Icon name="pin" size={13} />
+                    <span>{form.location.trim() || 'Venue location'}</span>
+                  </div>
+                  <div className="ticket-meta-item">
+                    <Icon name="users" size={13} />
+                    <span>0 Registrations</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="ticket-footer">
+                <span className="ticket-footnote">
+                  <Icon name="appleLogo" size={12} />
+                  <span>Event Registration Admin</span>
+                </span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
+    </div>
   );
 }
