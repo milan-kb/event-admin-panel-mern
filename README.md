@@ -1,5 +1,7 @@
 # Gather — Event Administration
 
+Live demo: https://event-admin-panel-mern.vercel.app
+
 A MERN admin panel for creating, viewing, updating, and deleting events. The dashboard displays Event ID, Event Name, Event Date, Venue, Total Registrations, and management actions.
 
 ## Features
@@ -119,3 +121,5 @@ Push both application folders, package manifests, lockfiles, and the required ex
 `vercel.json` deploys the Vite frontend and Express backend together using Vercel Services (beta). `/api/*` routes to the backend; other paths route to the SPA. The hosted frontend calls the same domain, while local development continues to use the URLs in `.env`.
 
 The backend's hosted entry point is `backend/src/hosted.js`. Database connections are reused across requests. Configure `MONGO_URI` in Vercel's environment variables for the exam Atlas database. Atlas must permit connections from the hosted runtime.
+
+The initial hosted release was deployed directly from the verified source. Automatic GitHub deployments are not connected because the Vercel account needs a GitHub Login Connection. Future code changes need a redeployment until that connection is configured.
