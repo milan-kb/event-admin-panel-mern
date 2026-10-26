@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ EventHub Admin — Event Registration System
+# EventHub Admin — Event Registration System
 
 <p align="center">
   <strong>High-performance, Neo-Brutalist Admin Panel for Event Registration built on the MERN Stack.</strong>
@@ -15,66 +15,57 @@
 
 <br />
 
-**[🌐 View Live Production Demo](https://event-admin-panel-mern.vercel.app)** &nbsp;&bull;&nbsp; **[📖 Jump to API Docs](#-rest-api-reference)** &nbsp;&bull;&nbsp; **[⚡ Quickstart](#-getting-started)**
+**[View Live Production Demo](https://event-admin-panel-mern.vercel.app)** &nbsp;&bull;&nbsp; **[Jump to API Docs](#rest-api-reference)** &nbsp;&bull;&nbsp; **[Getting Started](#getting-started-local-setup)**
 
 <br />
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│  EVENT_ADMIN // MERN CONSOLE                       ● ATLAS_CONNECTED   │
-├────────────────────────────────────────────────────────────────────────┤
-│  [ DASHBOARD ]   [ + ADD EVENT ]                                       │
-├────────────────────────────────────────────────────────────────────────┤
-│  NEXT UPCOMING: Annual Tech Summit 2026      TOTAL EVENTS: 14          │
-│  VENUE: Main Auditorium                     REGISTRATIONS: 480         │
-├────────────────────────────────────────────────────────────────────────┤
-│  #ID     EVENT NAME             DATE         VENUE         ACTIONS     │
-│  #8f2a1  Hackathon 2026         Nov 12       Hall C        [EDIT] [DEL]│
-│  #b4c90  Cloud Native Summit    Nov 25       Auditorium A  [EDIT] [DEL]│
-└────────────────────────────────────────────────────────────────────────┘
-```
+<p align="center">
+  <img src="assets/dashboard-preview.png" alt="EventHub Admin Dashboard Preview" width="100%" style="border-radius: 8px; border: 2px solid #000;" />
+</p>
 
 </div>
 
 ---
 
-## 🎯 Exam Requirements Compliance Checklist
+## Exam Requirements Compliance Checklist
 
 All evaluation requirements have been designed, implemented, and verified end-to-end:
 
 | # | Requirement | Implementation Details | Status |
 |---|---|---|:---:|
-| **1** | **Dashboard Listing** | Event ID, Name, Date, Venue, and Total Registrations | ✅ **Complete** |
-| **2** | **Navbar Navigation** | `Dashboard` and `Add Event` tabs with active routing | ✅ **Complete** |
-| **3** | **Update & Delete** | Per-row action buttons with confirmation & instant sync | ✅ **Complete** |
-| **4** | **Add Event Form** | Name, Description, Date, and Venue input fields | ✅ **Complete** |
-| **5** | **Update Functionality** | Pre-populated edit view and backend PUT mutation | ✅ **Complete** |
-| **6** | **Backend & Database** | Node.js / Express REST API connected to MongoDB Atlas | ✅ **Complete** |
-| **7** | **UI/UX Craft** | Distinct Neo-Brutalist design, clashing neon palette, 100% responsive | ✅ **Complete** |
-| **8** | **Environment Files** | Evaluator-ready `.env` files committed to repository | ✅ **Complete** |
+| **1** | **Dashboard Listing** | Event ID, Name, Date, Venue, and Total Registrations | **Complete** |
+| **2** | **Navbar Navigation** | `Dashboard` and `Add Event` tabs with active routing | **Complete** |
+| **3** | **Update & Delete** | Per-row action buttons with confirmation & instant sync | **Complete** |
+| **4** | **Add Event Form** | Name, Description, Date, and Venue input fields | **Complete** |
+| **5** | **Update Functionality** | Pre-populated edit view and backend PUT mutation | **Complete** |
+| **6** | **Backend & Database** | Node.js / Express REST API connected to MongoDB Atlas | **Complete** |
+| **7** | **UI/UX Craft** | Distinct Neo-Brutalist design, clashing neon palette, 100% responsive | **Complete** |
+| **8** | **Environment Files** | Evaluator-ready `.env` files committed to repository | **Complete** |
 
 ---
 
-## 🎨 UI/UX Design System: Neo-Brutalism
+## UI/UX Design System: Neo-Brutalism
 
 This application is built using the **Brutalist / Neo-Brutalist** aesthetic for high visual impact and memorable UX:
 
 * **Stark Black Outlines**: 3px solid black borders (`#000000`) defining all functional interactive elements.
 * **Hard Block Shadows**: High-contrast zero-blur shadows (`4px 4px 0px #000`) with tactile push-down click physics.
 * **Clashing Neon Color Palette**:
-  * 🟡 **Electric Canary Yellow** (`#ffe600`) — Total Events & Primary Accents
-  * 🟢 **Acid Neon Lime** (`#00ff66`) — Upcoming Events & Status Badges
-  * 🔵 **Electric Cyan** (`#00e5ff`) — Total Registrations & Update Buttons
-  * 🔴 **Hot Bubblegum Pink** (`#ff3399`) — Delete Confirmations & Pass Cutouts
+  * **Electric Canary Yellow** (`#ffe600`) — Total Events & Primary Accents
+  * **Acid Neon Lime** (`#00ff66`) — Upcoming Events & Status Badges
+  * **Electric Cyan** (`#00e5ff`) — Total Registrations & Update Buttons
+  * **Hot Bubblegum Pink** (`#ff3399`) — Delete Confirmations & Pass Cutouts
 * **Live Ticket Pass Preview**: The Add/Edit event form features a real-time reactive concert/festival VIP pass with barcode simulation and punch-hole cutouts that updates as you type.
 * **Click-to-Copy Event ID**: Clickable monospace hash badges (`#671d...`) with instant visual clipboard feedback.
 
 ---
 
-## 🏗️ Architecture & Project Structure
+## Architecture & Project Structure
 
 ```text
 event-admin-panel-mern/
+├── assets/
+│   └── dashboard-preview.png       # Live application screenshot
 ├── backend/                        # Express.js REST API
 │   ├── src/
 │   │   ├── config/db.js            # MongoDB Atlas Mongoose connection
@@ -112,7 +103,7 @@ event-admin-panel-mern/
 
 ---
 
-## 🔌 REST API Reference
+## REST API Reference
 
 All endpoints are mounted under `/api/events` and return JSON responses:
 
@@ -140,7 +131,7 @@ curl -X POST https://event-admin-panel-mern.vercel.app/api/events \
 
 ---
 
-## ⚡ Getting Started (Local Setup)
+## Getting Started (Local Setup)
 
 ### Prerequisites
 * **Node.js**: v20+ or v22 LTS recommended
@@ -186,7 +177,7 @@ Navigate to `http://localhost:5173` in your browser.
 
 ---
 
-## 🧪 Build & Production Verification
+## Build & Production Verification
 
 ```bash
 # Verify frontend bundle compilation
