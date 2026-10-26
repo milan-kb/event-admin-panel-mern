@@ -49,7 +49,7 @@ export default function EventForm() {
         if (!controller.signal.aborted) {
           setLoadFailed(true);
           setError(
-            err.response?.data?.message || 'Could not load event details. Please return to the dashboard.'
+            err.response?.data?.message || 'FAILED TO LOAD EVENT. CHECK SYSTEM STATUS.'
           );
         }
       } finally {
@@ -73,7 +73,7 @@ export default function EventForm() {
     if (saving) return;
 
     if (!form.name.trim() || !form.description.trim() || !form.date || !form.location.trim()) {
-      setError('Please fill in all required fields (Event Name, Description, Date, and Venue).');
+      setError('VALIDATION ERROR: ALL 4 FIELDS ARE MANDATORY.');
       return;
     }
 
@@ -83,159 +83,160 @@ export default function EventForm() {
     try {
       if (isEditing) {
         await api.put(`/api/events/${id}`, form);
-        navigate('/', { state: { message: `"${form.name.trim()}" was updated successfully.` } });
+        navigate('/', { state: { message: `EVENT "${form.name.trim().toUpperCase()}" UPDATED.` } });
       } else {
         await api.post('/api/events', form);
-        navigate('/', { state: { message: `"${form.name.trim()}" was created successfully.` } });
+        navigate('/', { state: { message: `EVENT "${form.name.trim().toUpperCase()}" CREATED.` } });
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save event. Please check inputs and try again.');
+      setError(err.response?.data?.message || 'SAVE FAILED. CHECK ATLAS CONNECTION.');
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="form-page-container">
+    <div className="brutal-form-page">
       {/* Back button */}
-      <div className="form-nav-back">
-        <Link to="/" className="modern-back-link">
-          <Icon name="back" size={15} />
-          <span>Back to Dashboard</span>
+      <div className="form-back-bar">
+        <Link to="/" className="brutal-back-link">
+          <Icon name="back" size={16} />
+          <span>&larr; BACK TO DASHBOARD</span>
         </Link>
       </div>
 
       {/* Heading */}
-      <section className="form-hero-header">
-        <div className="hero-pill-badge indigo">
-          <Icon name="ticket" size={13} />
-          <span>{isEditing ? 'Modify Existing Event' : 'New Event Registration'}</span>
+      <section className="form-header-box">
+        <div className="sticker-tag lime">
+          <Icon name="ticket" size={14} />
+          <span>{isEditing ? 'MODE: EDIT_RECORD' : 'MODE: CREATE_RECORD'}</span>
         </div>
-        <h1 className="dashboard-title">{isEditing ? 'Update Event Details' : 'Create New Event'}</h1>
-        <p className="dashboard-subtitle">
+        <h1 className="brutal-title">{isEditing ? 'UPDATE EVENT' : 'ADD NEW EVENT'}</h1>
+        <p className="brutal-subtitle">
           {isEditing
-            ? 'Make changes to event schedule, location, or descriptive details below.'
-            : 'Fill in the information below to schedule and publish your new event.'}
+            ? 'MODIFY SCHEDULE, VENUE, OR DESCRIPTIVE DATA IN MONGODB ATLAS.'
+            : 'ENTER EVENT PARAMETERS BELOW. FORM PERSISTS DIRECTLY TO ATLAS.'}
         </p>
       </section>
 
-      {/* Error alert */}
+      {/* Alert */}
       {error && (
-        <div className="app-toast error" role="alert">
-          <div className="toast-icon">
-            <Icon name="close" size={15} />
-          </div>
-          <span className="toast-message">{error}</span>
+        <div className="brutal-alert error" role="alert">
+          <div className="alert-tag">ALERT</div>
+          <span className="alert-message">{error}</span>
         </div>
       )}
 
       {loading ? (
-        <div className="form-card-container form-loading-card">
-          <div className="skeleton-line lg"></div>
-          <div className="skeleton-line md"></div>
-          <div className="skeleton-line sm"></div>
+        <div className="brutal-card form-loading-card">
+          <div className="brutal-loading-state">LOADING EVENT SPECIFICATIONS...</div>
         </div>
       ) : loadFailed ? (
-        <div className="form-card-container empty-card text-center">
-          <h3>Event not found</h3>
-          <p>The requested event could not be located in the database.</p>
-          <Link to="/" className="btn-primary-action">
-            Return to Dashboard
+        <div className="brutal-card empty-card text-center">
+          <h3>RECORD NOT LOCATED</h3>
+          <p>The specified ID does not exist in the database.</p>
+          <Link to="/" className="brutal-btn primary">
+            RETURN TO DASHBOARD
           </Link>
         </div>
       ) : (
-        <div className="form-layout-grid">
-          {/* Main Form */}
-          <div className="form-card-container">
-            <form onSubmit={handleSubmit} className="modern-event-form" noValidate>
+        <div className="brutal-form-grid">
+          {/* Main Form Box */}
+          <div className="brutal-card form-main-card">
+            <div className="card-badge-top yellow">INPUT FORM</div>
+            <form onSubmit={handleSubmit} className="brutal-form" noValidate>
               {/* Field 1: Event Name */}
-              <div className="input-field-group">
-                <label htmlFor="name" className="field-label">
-                  Event Name <span className="req-asterisk">*</span>
-                </label>
+              <div className="form-field">
+                <div className="field-label-row">
+                  <label htmlFor="name">EVENT NAME</label>
+                  <span className="req-tag">[MANDATORY]</span>
+                </div>
                 <input
                   id="name"
                   name="name"
                   type="text"
                   required
                   maxLength={120}
-                  className="modern-form-input"
-                  placeholder="e.g. Annual Tech Symposium 2026"
+                  className="brutal-input"
+                  placeholder="e.g. ANNUAL HACKATHON 2026"
                   value={form.name}
                   onChange={handleChange}
                   autoFocus
                 />
-                <span className="field-hint-text">A clear, engaging name for the event.</span>
+                <span className="brutal-hint">Official title of the event (max 120 chars).</span>
               </div>
 
               {/* Field 2: Event Description */}
-              <div className="input-field-group">
-                <label htmlFor="description" className="field-label">
-                  Event Description <span className="req-asterisk">*</span>
-                </label>
+              <div className="form-field">
+                <div className="field-label-row">
+                  <label htmlFor="description">EVENT DESCRIPTION</label>
+                  <span className="req-tag">[MANDATORY]</span>
+                </div>
                 <textarea
                   id="description"
                   name="description"
                   rows={4}
                   required
                   maxLength={3000}
-                  className="modern-form-textarea"
-                  placeholder="Detail the agenda, key topics, guest speakers, prerequisites..."
+                  className="brutal-textarea"
+                  placeholder="Explain event agenda, itinerary, key speakers, eligibility..."
                   value={form.description}
                   onChange={handleChange}
                 />
-                <span className="field-hint-text">Brief outline of the event's purpose and expectations.</span>
+                <span className="brutal-hint">Comprehensive summary for prospective attendees.</span>
               </div>
 
-              {/* Fields 3 & 4: Date and Venue (2 columns) */}
-              <div className="form-two-column-row">
-                <div className="input-field-group">
-                  <label htmlFor="date" className="field-label">
-                    Event Date <span className="req-asterisk">*</span>
-                  </label>
+              {/* Fields 3 & 4: Date and Venue (2 cols) */}
+              <div className="form-columns-split">
+                <div className="form-field">
+                  <div className="field-label-row">
+                    <label htmlFor="date">EVENT DATE</label>
+                    <span className="req-tag">[MANDATORY]</span>
+                  </div>
                   <input
                     id="date"
                     name="date"
                     type="date"
                     required
-                    className="modern-form-input"
+                    className="brutal-input"
                     value={form.date}
                     onChange={handleChange}
                   />
-                  <span className="field-hint-text">Date the event takes place.</span>
+                  <span className="brutal-hint">Calendar date of occurrence.</span>
                 </div>
 
-                <div className="input-field-group">
-                  <label htmlFor="location" className="field-label">
-                    Venue <span className="req-asterisk">*</span>
-                  </label>
+                <div className="form-field">
+                  <div className="field-label-row">
+                    <label htmlFor="location">VENUE</label>
+                    <span className="req-tag">[MANDATORY]</span>
+                  </div>
                   <input
                     id="location"
                     name="location"
                     type="text"
                     required
                     maxLength={160}
-                    className="modern-form-input"
-                    placeholder="e.g. Auditorium Hall A, Campus 1"
+                    className="brutal-input"
+                    placeholder="e.g. MAIN AUDITORIUM / ZOOM"
                     value={form.location}
                     onChange={handleChange}
                   />
-                  <span className="field-hint-text">Physical hall, room, or virtual platform URL.</span>
+                  <span className="brutal-hint">Physical premises or virtual meeting link.</span>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="form-bottom-actions">
-                <Link to="/" className="btn-secondary-action">
-                  Cancel
+              <div className="form-submit-row">
+                <Link to="/" className="brutal-btn outline">
+                  CANCEL
                 </Link>
-                <button type="submit" className="btn-primary-action" disabled={saving}>
+                <button type="submit" className="brutal-btn primary" disabled={saving}>
                   {saving ? (
-                    <span>Saving…</span>
+                    <span>PROCESSING...</span>
                   ) : (
                     <>
-                      <Icon name="check" size={15} />
-                      <span>{isEditing ? 'Update Event' : 'Create Event'}</span>
+                      <Icon name="check" size={16} />
+                      <span>{isEditing ? 'COMMIT UPDATES' : 'PUBLISH EVENT'}</span>
                     </>
                   )}
                 </button>
@@ -243,50 +244,53 @@ export default function EventForm() {
             </form>
           </div>
 
-          {/* Live Preview Card */}
-          <aside className="form-preview-column" aria-label="Live event card preview">
-            <div className="preview-header-label">Live Pass Preview</div>
-            <div className="live-event-pass-card">
-              <div className="pass-top-accent"></div>
-              <div className="pass-card-content">
-                <div className="pass-header-flex">
+          {/* Live Brutalist VIP Pass Aside */}
+          <aside className="form-preview-aside" aria-label="Live event ticket preview">
+            <div className="preview-label-tag">TICKET_PREVIEW // PASS</div>
+            <div className="brutal-ticket-pass">
+              <div className="ticket-punch-hole left"></div>
+              <div className="ticket-punch-hole right"></div>
+
+              <div className="ticket-top-banner">
+                <span className="ticket-serial">#EVENT-REG-2026</span>
+                <span className="ticket-type-badge">{isEditing ? 'EDIT_MODE' : 'VIP_PASS'}</span>
+              </div>
+
+              <div className="ticket-content">
+                <div className="ticket-headline-box">
                   {form.date ? (
                     <CalendarDate value={form.date} />
                   ) : (
-                    <div className="calendar-date-placeholder">
-                      <Icon name="calendar" size={24} />
+                    <div className="ticket-date-placeholder">
+                      <Icon name="calendar" size={26} />
                     </div>
                   )}
-                  <div className="pass-title-box">
-                    <span className="pass-badge">{isEditing ? 'Editing Mode' : 'New Event'}</span>
-                    <h4 className="pass-event-title">{form.name.trim() || 'Your Event Title Here'}</h4>
+                  <div className="ticket-title-area">
+                    <span className="ticket-kicker">ADMIT ONE</span>
+                    <h4 className="ticket-name">{form.name.trim() || 'EVENT TITLE HERE'}</h4>
                   </div>
                 </div>
 
-                <div className="pass-divider"></div>
+                <div className="ticket-dashed-cut"></div>
 
-                <p className="pass-description-text">
+                <p className="ticket-desc-text">
                   {form.description.trim() ||
-                    'Event description will dynamically preview here as you type in the form.'}
+                    'Real-time event description will render dynamically here as you complete the input fields.'}
                 </p>
 
-                <div className="pass-meta-strip">
-                  <div className="pass-meta-item">
+                <div className="ticket-badge-strip">
+                  <div className="ticket-spec-pill">
                     <Icon name="pin" size={13} />
-                    <span>{form.location.trim() || 'Venue location'}</span>
+                    <span>{form.location.trim() || 'VENUE_TBD'}</span>
                   </div>
-                  <div className="pass-meta-item">
+                  <div className="ticket-spec-pill cyan">
                     <Icon name="users" size={13} />
-                    <span>0 Registered</span>
+                    <span>0 REGS</span>
                   </div>
                 </div>
 
-                <div className="pass-footer-strip">
-                  <div className="pass-brand-tag">
-                    <Icon name="ticket" size={13} />
-                    <span>EventHub Portal</span>
-                  </div>
-                  <span className="pass-status-pill">Active Draft</span>
+                <div className="ticket-barcode-simulation" aria-hidden="true">
+                  <span>||| | | |||| || | || |||| | ||| | ||||</span>
                 </div>
               </div>
             </div>

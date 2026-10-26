@@ -49,7 +49,7 @@ export default function Dashboard() {
         if (!controller.signal.aborted) {
           setError(
             err.response?.data?.message ||
-              'Unable to load events from the database. Please check your connection.'
+              'Connection failed. Ensure backend and MongoDB Atlas are reachable.'
           );
         }
       } finally {
@@ -71,7 +71,7 @@ export default function Dashboard() {
 
   const handleDelete = async (eventItem) => {
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${eventItem.name}"? This action cannot be undone.`
+      `DELETE "${eventItem.name}"? THIS ACTION CANNOT BE UNDONE.`
     );
     if (!confirmed) return;
 
@@ -82,9 +82,9 @@ export default function Dashboard() {
     try {
       await api.delete(`/api/events/${eventItem._id}`);
       setEvents((prev) => prev.filter((item) => item._id !== eventItem._id));
-      setNotice(`"${eventItem.name}" was successfully deleted.`);
+      setNotice(`"${eventItem.name}" WAS PERMANENTLY DELETED.`);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete event. Please try again.');
+      setError(err.response?.data?.message || 'Failed to delete event. Check connection.');
     } finally {
       setDeletingId('');
     }
@@ -118,167 +118,150 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="dashboard-container">
-      {/* Toast Notice */}
+    <div className="brutal-dashboard">
+      {/* Toast Notification */}
       {notice && (
-        <div className="app-toast success" role="status">
-          <div className="toast-icon">
-            <Icon name="check" size={15} />
-          </div>
-          <span className="toast-message">{notice}</span>
+        <div className="brutal-alert success" role="status">
+          <div className="alert-tag">SUCCESS</div>
+          <span className="alert-message">{notice}</span>
           <button
             type="button"
-            className="toast-close"
+            className="alert-close-btn"
             onClick={() => setNotice('')}
             aria-label="Close"
           >
-            <Icon name="close" size={13} />
+            [X]
           </button>
         </div>
       )}
 
       {error && (
-        <div className="app-toast error" role="alert">
-          <div className="toast-icon">
-            <Icon name="close" size={15} />
-          </div>
-          <span className="toast-message">{error}</span>
+        <div className="brutal-alert error" role="alert">
+          <div className="alert-tag">ERROR</div>
+          <span className="alert-message">{error}</span>
           <button
             type="button"
-            className="toast-retry"
+            className="alert-retry-btn"
             onClick={() => setReloadKey((k) => k + 1)}
           >
-            Retry
+            RETRY
           </button>
         </div>
       )}
 
-      {/* Page Heading */}
-      <section className="dashboard-hero-header">
-        <div className="header-text">
-          <div className="hero-pill-badge">
-            <Icon name="zap" size={13} />
-            <span>Real-time Event Management</span>
+      {/* Hero Header */}
+      <section className="brutal-hero-header">
+        <div className="header-meta">
+          <div className="sticker-tag">
+            <Icon name="zap" size={14} />
+            <span>MERN // CRUD SYSTEM ACTIVE</span>
           </div>
-          <h1 className="dashboard-title">Event Dashboard</h1>
-          <p className="dashboard-subtitle">
-            Manage upcoming schedules, physical/virtual venues, and registration tracking in one place.
+          <h1 className="brutal-title">EVENT DASHBOARD</h1>
+          <p className="brutal-subtitle">
+            CENTRALIZED ADMIN CONSOLE FOR SCHEDULES, VENUES & ATTENDEE LOGS.
           </p>
         </div>
-        <Link to="/events/new" className="btn-primary-action">
-          <Icon name="plus" size={16} />
-          <span>Add New Event</span>
+        <Link to="/events/new" className="brutal-btn primary">
+          <Icon name="plus" size={18} />
+          <span>+ ADD NEW EVENT</span>
         </Link>
       </section>
 
-      {/* Metrics Cards Grid */}
-      <section className="metrics-cards-grid" aria-label="Event statistics">
-        {/* Spotlight Next Event */}
-        <div className="metric-card spotlight-card">
+      {/* Metrics Cards Grid (Neo-Brutalist High-Contrast Blocks) */}
+      <section className="brutal-metrics-grid" aria-label="Event statistics">
+        {/* Spotlight Card */}
+        <div className="brutal-card spotlight-block">
+          <div className="card-badge-top">NEXT UPCOMING</div>
           {loading ? (
-            <div className="spotlight-loading">
-              <div className="skeleton-line sm"></div>
-              <div className="skeleton-line lg"></div>
-              <div className="skeleton-line md"></div>
-            </div>
+            <div className="brutal-loading-box">LOADING EVENT DATA...</div>
           ) : nextEvent && !error ? (
-            <div className="spotlight-content">
+            <div className="spotlight-inner">
               <CalendarDate value={nextEvent.date} />
-              <div className="spotlight-info">
-                <span className="spotlight-badge">Up Next</span>
-                <h3 className="spotlight-name" title={nextEvent.name}>{nextEvent.name}</h3>
-                <p className="spotlight-meta">
-                  <span className="meta-date">{formatDate(nextEvent.date)}</span>
-                  <span className="meta-dot">·</span>
-                  <span className="venue-meta">
+              <div className="spotlight-details">
+                <span className="event-kicker">FEATURED GATHERING</span>
+                <h3 className="spotlight-title" title={nextEvent.name}>{nextEvent.name}</h3>
+                <div className="spotlight-meta-row">
+                  <span className="meta-pill">{formatDate(nextEvent.date)}</span>
+                  <span className="meta-pill venue">
                     <Icon name="pin" size={13} />
                     {nextEvent.location}
                   </span>
-                </p>
-                <Link to={`/events/${nextEvent._id}/edit`} className="spotlight-link">
-                  <span>Update Event</span>
-                  <Icon name="arrow" size={13} />
+                </div>
+                <Link to={`/events/${nextEvent._id}/edit`} className="brutal-link-btn">
+                  <span>UPDATE EVENT &rarr;</span>
                 </Link>
               </div>
             </div>
           ) : (
-            <div className="spotlight-empty">
-              <div className="empty-icon-wrap">
-                <Icon name="calendar" size={24} />
-              </div>
+            <div className="spotlight-empty-box">
+              <Icon name="calendar" size={32} />
               <div>
-                <h3>No upcoming events scheduled</h3>
-                <p>Create an event to begin tracking attendees.</p>
-                <Link to="/events/new" className="spotlight-link">
-                  <span>Add First Event</span>
-                  <Icon name="arrow" size={13} />
+                <h4>NO UPCOMING EVENTS</h4>
+                <p>Register an event to populate the spotlight.</p>
+                <Link to="/events/new" className="brutal-link-btn">
+                  <span>+ CREATE FIRST EVENT</span>
                 </Link>
               </div>
             </div>
           )}
         </div>
 
-        {/* Total Events */}
-        <div className="metric-card stat-card card-indigo">
-          <div className="stat-header">
-            <span className="stat-label">Total Events</span>
-            <div className="stat-icon-wrap indigo">
-              <Icon name="calendar" size={16} />
-            </div>
+        {/* Metric 1: Total Events (Electric Yellow) */}
+        <div className="brutal-card stat-block yellow">
+          <div className="stat-label-bar">
+            <span>TOTAL EVENTS</span>
+            <Icon name="calendar" size={18} />
           </div>
-          <span className="stat-value">{loading ? '—' : events.length}</span>
-          <span className="stat-sub">Recorded in database</span>
+          <div className="stat-big-num">{loading ? '—' : events.length}</div>
+          <div className="stat-footer-text">IN DATABASE</div>
         </div>
 
-        {/* Upcoming */}
-        <div className="metric-card stat-card card-emerald">
-          <div className="stat-header">
-            <span className="stat-label">Upcoming</span>
-            <div className="stat-icon-wrap emerald">
-              <Icon name="sparkle" size={16} />
-            </div>
+        {/* Metric 2: Upcoming (Neon Lime) */}
+        <div className="brutal-card stat-block lime">
+          <div className="stat-label-bar">
+            <span>UPCOMING</span>
+            <Icon name="sparkle" size={18} />
           </div>
-          <span className="stat-value">{loading ? '—' : upcomingEvents.length}</span>
-          <span className="stat-sub">Scheduled ahead</span>
+          <div className="stat-big-num">{loading ? '—' : upcomingEvents.length}</div>
+          <div className="stat-footer-text">AHEAD ON SCHEDULE</div>
         </div>
 
-        {/* Total Registrations */}
-        <div className="metric-card stat-card card-violet">
-          <div className="stat-header">
-            <span className="stat-label">Registrations</span>
-            <div className="stat-icon-wrap violet">
-              <Icon name="users" size={16} />
-            </div>
+        {/* Metric 3: Registrations (Electric Cyan) */}
+        <div className="brutal-card stat-block cyan">
+          <div className="stat-label-bar">
+            <span>REGISTRATIONS</span>
+            <Icon name="users" size={18} />
           </div>
-          <span className="stat-value">{loading ? '—' : totalRegistrations}</span>
-          <span className="stat-sub">Registered attendees</span>
+          <div className="stat-big-num">{loading ? '—' : totalRegistrations}</div>
+          <div className="stat-footer-text">CONFIRMED ATTENDEES</div>
         </div>
       </section>
 
-      {/* Table Section */}
-      <section className="table-card-container" aria-labelledby="table-title">
-        {/* Table Toolbar */}
-        <div className="table-toolbar">
-          <div className="toolbar-left">
-            <h2 id="table-title" className="toolbar-title">
-              All Events List
+      {/* Main Events Table Card */}
+      <section className="brutal-table-card" aria-labelledby="table-heading">
+        {/* Toolbar Bar */}
+        <div className="brutal-toolbar">
+          <div className="toolbar-title-wrap">
+            <h2 id="table-heading" className="toolbar-heading">
+              EVENT DATABASE
             </h2>
-            <span className="event-count-pill">
-              {loading ? 'Loading…' : `${events.length} total`}
+            <span className="count-sticker">
+              {loading ? 'SYNCING...' : `${events.length} ENTRIES`}
             </span>
           </div>
 
-          <div className="toolbar-right">
-            <div className="segmented-filter-bar" role="group" aria-label="Filter events by date">
+          <div className="toolbar-controls">
+            {/* Filter Buttons */}
+            <div className="filter-button-group" role="group" aria-label="Filter events by date">
               {[
-                ['all', 'All Events'],
-                ['upcoming', 'Upcoming'],
-                ['past', 'Past'],
+                ['all', 'ALL'],
+                ['upcoming', 'UPCOMING'],
+                ['past', 'PAST'],
               ].map(([key, label]) => (
                 <button
                   key={key}
                   type="button"
-                  className={`filter-segment-btn ${filter === key ? 'active' : ''}`}
+                  className={`brutal-filter-btn ${filter === key ? 'active' : ''}`}
                   onClick={() => setFilter(key)}
                   aria-pressed={filter === key}
                 >
@@ -287,11 +270,12 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <div className="modern-search-box">
-              <Icon name="search" size={15} />
+            {/* Search Box */}
+            <div className="brutal-search-wrap">
+              <Icon name="search" size={16} />
               <input
                 type="search"
-                placeholder="Search events, venues, IDs..."
+                placeholder="SEARCH EVENTS..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 aria-label="Search events"
@@ -299,11 +283,11 @@ export default function Dashboard() {
               {search && (
                 <button
                   type="button"
-                  className="search-clear-btn"
+                  className="search-reset"
                   onClick={() => setSearch('')}
                   aria-label="Clear search"
                 >
-                  <Icon name="close" size={12} />
+                  &times;
                 </button>
               )}
             </div>
@@ -312,71 +296,49 @@ export default function Dashboard() {
 
         {/* Table Content */}
         {loading ? (
-          <div className="table-skeleton-wrap" role="status">
-            <span className="sr-only">Loading events...</span>
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="skeleton-row">
-                <span className="sk-cell w-20"></span>
-                <span className="sk-cell w-30"></span>
-                <span className="sk-cell w-15"></span>
-                <span className="sk-cell w-15"></span>
-                <span className="sk-cell w-10"></span>
-                <span className="sk-cell w-10"></span>
-              </div>
-            ))}
+          <div className="brutal-loading-state" role="status">
+            <span>[ SYSTEM: FETCHING RECORDS FROM ATLAS... ]</span>
           </div>
         ) : filteredEvents.length === 0 ? (
-          <div className="modern-empty-state">
-            <div className="empty-state-icon-circle">
-              <Icon name={events.length ? 'search' : 'calendar'} size={30} />
+          <div className="brutal-empty-block">
+            <div className="empty-icon-wrap">
+              <Icon name={events.length ? 'search' : 'calendar'} size={36} />
             </div>
-            <h3>{events.length ? 'No events match your criteria' : 'No events in database yet'}</h3>
+            <h3>{events.length ? 'NO MATCHING RECORDS FOUND' : 'NO EVENTS FOUND IN SYSTEM'}</h3>
             <p>
               {events.length
-                ? 'Try clearing your search query or switching date filters.'
-                : 'Click below to create your very first event and start managing registrations.'}
+                ? 'Try revising search query or selecting a different filter.'
+                : 'Click the button below to add your first event to the dashboard.'}
             </p>
             {events.length ? (
               <button
                 type="button"
-                className="btn-secondary-action"
+                className="brutal-btn yellow"
                 onClick={() => {
                   setSearch('');
                   setFilter('all');
                 }}
               >
-                Reset Filters
+                RESET FILTERS
               </button>
             ) : (
-              <Link to="/events/new" className="btn-primary-action">
-                <Icon name="plus" size={16} />
-                <span>Create First Event</span>
+              <Link to="/events/new" className="brutal-btn primary">
+                <Icon name="plus" size={18} />
+                <span>+ ADD EVENT</span>
               </Link>
             )}
           </div>
         ) : (
-          <div className="table-scroll-wrapper">
-            <table className="modern-data-table">
+          <div className="table-responsive-box">
+            <table className="brutal-table">
               <thead>
                 <tr>
-                  <th scope="col" className="col-id">
-                    Event ID
-                  </th>
-                  <th scope="col" className="col-name">
-                    Event Name
-                  </th>
-                  <th scope="col" className="col-date">
-                    Event Date
-                  </th>
-                  <th scope="col" className="col-venue">
-                    Venue
-                  </th>
-                  <th scope="col" className="col-regs text-center">
-                    Total Registrations
-                  </th>
-                  <th scope="col" className="col-actions text-right">
-                    Actions
-                  </th>
+                  <th scope="col" className="col-id">EVENT ID</th>
+                  <th scope="col" className="col-name">EVENT NAME</th>
+                  <th scope="col" className="col-date">EVENT DATE</th>
+                  <th scope="col" className="col-venue">VENUE</th>
+                  <th scope="col" className="col-regs text-center">TOTAL REGISTRATIONS</th>
+                  <th scope="col" className="col-actions text-right">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -385,28 +347,28 @@ export default function Dashboard() {
                   const isBeingDeleted = deletingId === item._id;
 
                   return (
-                    <tr key={item._id} className={isBeingDeleted ? 'row-deleting' : ''}>
+                    <tr key={item._id} className={isBeingDeleted ? 'row-busy' : ''}>
                       {/* 1. Event ID */}
                       <td className="col-id">
                         <button
                           type="button"
-                          className="id-tag-pill"
+                          className="brutal-id-badge"
                           onClick={() => copyEventId(item._id)}
-                          title="Click to copy full Event ID"
+                          title="Click to copy full MongoDB ObjectId"
                         >
-                          <span className="id-prefix">#</span>
-                          <span className="id-code">{item._id.slice(-6)}</span>
-                          <Icon name={copiedId === item._id ? 'check' : 'copy'} size={11} />
+                          <span className="hash">#</span>
+                          <span className="code">{item._id.slice(-6)}</span>
+                          <Icon name={copiedId === item._id ? 'check' : 'copy'} size={12} />
                         </button>
-                        {copiedId === item._id && <span className="copy-badge-tip">Copied!</span>}
+                        {copiedId === item._id && <span className="copied-tag">COPIED!</span>}
                       </td>
 
                       {/* 2. Event Name & Description */}
                       <td className="col-name">
-                        <div className="event-info-stack">
-                          <strong className="event-title-main">{item.name}</strong>
+                        <div className="name-block">
+                          <strong className="main-event-name">{item.name}</strong>
                           {item.description && (
-                            <p className="event-desc-snippet" title={item.description}>
+                            <p className="main-event-desc" title={item.description}>
                               {item.description}
                             </p>
                           )}
@@ -415,58 +377,53 @@ export default function Dashboard() {
 
                       {/* 3. Event Date */}
                       <td className="col-date">
-                        <div className="date-badge-stack">
-                          <time dateTime={item.date ? item.date.slice(0, 10) : ''} className="date-text">
+                        <div className="date-cell-wrap">
+                          <time dateTime={item.date ? item.date.slice(0, 10) : ''} className="bold-date">
                             {formatDate(item.date)}
                           </time>
-                          <span className={`status-pill ${isPast ? 'past' : 'upcoming'}`}>
-                            <span className="pill-dot" aria-hidden="true"></span>
-                            {isPast ? 'Past Event' : 'Upcoming'}
+                          <span className={`brutal-status-tag ${isPast ? 'past' : 'upcoming'}`}>
+                            {isPast ? 'PAST' : 'UPCOMING'}
                           </span>
                         </div>
                       </td>
 
                       {/* 4. Venue */}
                       <td className="col-venue">
-                        <div className="venue-cell-content">
-                          <div className="venue-pin-wrap">
-                            <Icon name="pin" size={13} />
-                          </div>
-                          <span className="venue-name-text" title={item.location}>
-                            {item.location}
-                          </span>
+                        <div className="venue-tag-box">
+                          <Icon name="pin" size={14} />
+                          <span title={item.location}>{item.location}</span>
                         </div>
                       </td>
 
                       {/* 5. Total Registrations */}
                       <td className="col-regs text-center">
-                        <span className="registration-pill">
+                        <div className="brutal-counter-pill">
                           <Icon name="users" size={13} />
-                          <strong className="reg-number">{item.totalReg || 0}</strong>
-                        </span>
+                          <span>{item.totalReg || 0}</span>
+                        </div>
                       </td>
 
                       {/* 6. Actions (Update & Delete) */}
                       <td className="col-actions text-right">
-                        <div className="action-btns-row">
+                        <div className="action-button-pair">
                           <Link
                             to={`/events/${item._id}/edit`}
-                            className="btn-action-pill edit-btn"
+                            className="brutal-action-btn update"
                             aria-label={`Update ${item.name}`}
                           >
                             <Icon name="edit" size={13} />
-                            <span>Update</span>
+                            <span>UPDATE</span>
                           </Link>
 
                           <button
                             type="button"
-                            className="btn-action-pill delete-btn"
+                            className="brutal-action-btn delete"
                             disabled={isBeingDeleted}
                             onClick={() => handleDelete(item)}
                             aria-label={`Delete ${item.name}`}
                           >
                             <Icon name="trash" size={13} />
-                            <span>{isBeingDeleted ? 'Deleting…' : 'Delete'}</span>
+                            <span>{isBeingDeleted ? 'DELETING…' : 'DELETE'}</span>
                           </button>
                         </div>
                       </td>
@@ -478,24 +435,24 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Table Footer */}
         {filteredEvents.length > 0 && (
-          <div className="table-footer-bar">
+          <div className="brutal-table-footer">
             <span>
-              Showing <strong>{filteredEvents.length}</strong> of <strong>{events.length}</strong>{' '}
-              {events.length === 1 ? 'event' : 'events'}
+              TOTAL DISPLAYED: <strong>{filteredEvents.length}</strong> / <strong>{events.length}</strong> RECORDS
             </span>
           </div>
         )}
       </section>
 
-      {/* Footer */}
-      <footer className="dashboard-footer">
-        <div className="footer-flex">
-          <div className="footer-brand-tag">
-            <div className="footer-logo-dot"></div>
-            <span>Event Registration Admin Portal</span>
+      {/* Footer Banner */}
+      <footer className="brutal-footer">
+        <div className="footer-bar">
+          <div className="footer-left">
+            <span className="status-square"></span>
+            <strong>EVENT_ADMIN // MERN STACK ASSESSMENT</strong>
           </div>
-          <span className="footer-tech-stack">MERN Stack · MongoDB Atlas · Express.js · React · Node.js</span>
+          <span className="footer-specs">MONGODB ATLAS &middot; EXPRESS &middot; REACT 19 &middot; NODE</span>
         </div>
       </footer>
     </div>

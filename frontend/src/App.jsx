@@ -12,22 +12,22 @@ export default function App() {
     window.scrollTo(0, 0);
     const pageTitle =
       pathname === '/'
-        ? 'Dashboard'
+        ? 'DASHBOARD'
         : pathname === '/events/new'
-        ? 'Add Event'
+        ? 'ADD EVENT'
         : pathname.endsWith('/edit')
-        ? 'Update Event'
-        : 'Page Not Found';
-    document.title = `${pageTitle} · EventHub Admin`;
+        ? 'UPDATE EVENT'
+        : 'PAGE NOT FOUND';
+    document.title = `${pageTitle} // EVENT_ADMIN`;
   }, [pathname]);
 
   return (
-    <div className="app-root-layout">
+    <div className="brutal-app-layout">
       <a className="skip-link" href="#main-content">
-        Skip to content
+        SKIP TO CONTENT
       </a>
       <Navbar />
-      <main className="app-main-content" id="main-content">
+      <main className="brutal-main-content" id="main-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/events/new" element={<EventForm key="new" />} />
@@ -35,14 +35,14 @@ export default function App() {
           <Route
             path="*"
             element={
-              <div className="modern-empty-state not-found-card">
-                <div className="empty-state-icon-circle">
-                  <Icon name="close" size={30} />
+              <div className="brutal-empty-block not-found-block">
+                <div className="empty-icon-wrap">
+                  <Icon name="close" size={36} />
                 </div>
-                <h2>Page Not Found</h2>
-                <p>The screen or event you requested does not exist or has been relocated.</p>
-                <Link to="/" className="btn-primary-action">
-                  <span>Back to Dashboard</span>
+                <h2>404 // ROUTE NOT FOUND</h2>
+                <p>The requested route does not map to any active endpoint.</p>
+                <Link to="/" className="brutal-btn primary">
+                  <span>&larr; BACK TO DASHBOARD</span>
                 </Link>
               </div>
             }
