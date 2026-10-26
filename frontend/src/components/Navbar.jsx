@@ -3,14 +3,16 @@ import Icon from './Icon.jsx';
 
 export default function Navbar() {
   return (
-    <header className="apple-navbar">
+    <header className="app-navbar">
       <div className="nav-container">
         <Link to="/" className="nav-brand" aria-label="Event Admin Home">
-          <div className="brand-icon">
-            <Icon name="appleLogo" size={17} />
+          <div className="brand-logo-badge">
+            <Icon name="ticket" size={17} />
           </div>
-          <span className="brand-title">Event Admin</span>
-          <span className="brand-badge">Portal</span>
+          <div className="brand-titles">
+            <span className="brand-title">EventHub</span>
+            <span className="brand-badge">Admin</span>
+          </div>
         </Link>
 
         <nav className="nav-tabs" aria-label="Main navigation">

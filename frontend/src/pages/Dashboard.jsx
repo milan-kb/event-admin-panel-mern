@@ -63,7 +63,6 @@ export default function Dashboard() {
     return () => controller.abort();
   }, [reloadKey]);
 
-  // Auto-dismiss notice after 5 seconds
   useEffect(() => {
     if (!notice) return;
     const timer = setTimeout(() => setNotice(''), 5000);
@@ -122,7 +121,7 @@ export default function Dashboard() {
     <div className="dashboard-container">
       {/* Toast Notice */}
       {notice && (
-        <div className="apple-toast success" role="status">
+        <div className="app-toast success" role="status">
           <div className="toast-icon">
             <Icon name="check" size={15} />
           </div>
@@ -139,7 +138,7 @@ export default function Dashboard() {
       )}
 
       {error && (
-        <div className="apple-toast error" role="alert">
+        <div className="app-toast error" role="alert">
           <div className="toast-icon">
             <Icon name="close" size={15} />
           </div>
@@ -155,21 +154,26 @@ export default function Dashboard() {
       )}
 
       {/* Page Heading */}
-      <section className="apple-hero-header">
+      <section className="dashboard-hero-header">
         <div className="header-text">
-          <h1 className="apple-title">Event Dashboard</h1>
-          <p className="apple-subtitle">
-            Manage your schedule, venues, and live registration counts.
+          <div className="hero-pill-badge">
+            <Icon name="zap" size={13} />
+            <span>Real-time Event Management</span>
+          </div>
+          <h1 className="dashboard-title">Event Dashboard</h1>
+          <p className="dashboard-subtitle">
+            Manage upcoming schedules, physical/virtual venues, and registration tracking in one place.
           </p>
         </div>
-        <Link to="/events/new" className="apple-btn-primary">
+        <Link to="/events/new" className="btn-primary-action">
           <Icon name="plus" size={16} />
-          <span>Add Event</span>
+          <span>Add New Event</span>
         </Link>
       </section>
 
       {/* Metrics Cards Grid */}
-      <section className="apple-metrics-grid" aria-label="Event statistics">
+      <section className="metrics-cards-grid" aria-label="Event statistics">
+        {/* Spotlight Next Event */}
         <div className="metric-card spotlight-card">
           {loading ? (
             <div className="spotlight-loading">
@@ -181,10 +185,10 @@ export default function Dashboard() {
             <div className="spotlight-content">
               <CalendarDate value={nextEvent.date} />
               <div className="spotlight-info">
-                <span className="spotlight-tag">Next Upcoming Event</span>
-                <h3 className="spotlight-name">{nextEvent.name}</h3>
+                <span className="spotlight-badge">Up Next</span>
+                <h3 className="spotlight-name" title={nextEvent.name}>{nextEvent.name}</h3>
                 <p className="spotlight-meta">
-                  <span>{formatDate(nextEvent.date)}</span>
+                  <span className="meta-date">{formatDate(nextEvent.date)}</span>
                   <span className="meta-dot">·</span>
                   <span className="venue-meta">
                     <Icon name="pin" size={13} />
@@ -192,7 +196,7 @@ export default function Dashboard() {
                   </span>
                 </p>
                 <Link to={`/events/${nextEvent._id}/edit`} className="spotlight-link">
-                  <span>Update Details</span>
+                  <span>Update Event</span>
                   <Icon name="arrow" size={13} />
                 </Link>
               </div>
@@ -200,11 +204,11 @@ export default function Dashboard() {
           ) : (
             <div className="spotlight-empty">
               <div className="empty-icon-wrap">
-                <Icon name="calendar" size={26} />
+                <Icon name="calendar" size={24} />
               </div>
               <div>
                 <h3>No upcoming events scheduled</h3>
-                <p>Create an event to start tracking registrations.</p>
+                <p>Create an event to begin tracking attendees.</p>
                 <Link to="/events/new" className="spotlight-link">
                   <span>Add First Event</span>
                   <Icon name="arrow" size={13} />
@@ -214,21 +218,23 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="metric-card stat-card">
+        {/* Total Events */}
+        <div className="metric-card stat-card card-indigo">
           <div className="stat-header">
             <span className="stat-label">Total Events</span>
-            <div className="stat-icon">
+            <div className="stat-icon-wrap indigo">
               <Icon name="calendar" size={16} />
             </div>
           </div>
           <span className="stat-value">{loading ? '—' : events.length}</span>
-          <span className="stat-sub">Active in database</span>
+          <span className="stat-sub">Recorded in database</span>
         </div>
 
-        <div className="metric-card stat-card">
+        {/* Upcoming */}
+        <div className="metric-card stat-card card-emerald">
           <div className="stat-header">
             <span className="stat-label">Upcoming</span>
-            <div className="stat-icon green">
+            <div className="stat-icon-wrap emerald">
               <Icon name="sparkle" size={16} />
             </div>
           </div>
@@ -236,42 +242,43 @@ export default function Dashboard() {
           <span className="stat-sub">Scheduled ahead</span>
         </div>
 
-        <div className="metric-card stat-card">
+        {/* Total Registrations */}
+        <div className="metric-card stat-card card-violet">
           <div className="stat-header">
             <span className="stat-label">Registrations</span>
-            <div className="stat-icon blue">
+            <div className="stat-icon-wrap violet">
               <Icon name="users" size={16} />
             </div>
           </div>
           <span className="stat-value">{loading ? '—' : totalRegistrations}</span>
-          <span className="stat-sub">Total attendees</span>
+          <span className="stat-sub">Registered attendees</span>
         </div>
       </section>
 
       {/* Table Section */}
-      <section className="apple-table-card" aria-labelledby="table-title">
+      <section className="table-card-container" aria-labelledby="table-title">
         {/* Table Toolbar */}
         <div className="table-toolbar">
           <div className="toolbar-left">
             <h2 id="table-title" className="toolbar-title">
-              All Events
+              All Events List
             </h2>
-            <span className="event-count-badge">
+            <span className="event-count-pill">
               {loading ? 'Loading…' : `${events.length} total`}
             </span>
           </div>
 
           <div className="toolbar-right">
-            <div className="segmented-control" role="group" aria-label="Filter events by date">
+            <div className="segmented-filter-bar" role="group" aria-label="Filter events by date">
               {[
-                ['all', 'All'],
+                ['all', 'All Events'],
                 ['upcoming', 'Upcoming'],
                 ['past', 'Past'],
               ].map(([key, label]) => (
                 <button
                   key={key}
                   type="button"
-                  className={`segment-btn ${filter === key ? 'active' : ''}`}
+                  className={`filter-segment-btn ${filter === key ? 'active' : ''}`}
                   onClick={() => setFilter(key)}
                   aria-pressed={filter === key}
                 >
@@ -280,11 +287,11 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <div className="apple-search-box">
+            <div className="modern-search-box">
               <Icon name="search" size={15} />
               <input
                 type="search"
-                placeholder="Search events, venues..."
+                placeholder="Search events, venues, IDs..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 aria-label="Search events"
@@ -292,7 +299,7 @@ export default function Dashboard() {
               {search && (
                 <button
                   type="button"
-                  className="search-clear"
+                  className="search-clear-btn"
                   onClick={() => setSearch('')}
                   aria-label="Clear search"
                 >
@@ -319,20 +326,20 @@ export default function Dashboard() {
             ))}
           </div>
         ) : filteredEvents.length === 0 ? (
-          <div className="apple-empty-state">
-            <div className="empty-state-icon">
-              <Icon name={events.length ? 'search' : 'calendar'} size={32} />
+          <div className="modern-empty-state">
+            <div className="empty-state-icon-circle">
+              <Icon name={events.length ? 'search' : 'calendar'} size={30} />
             </div>
-            <h3>{events.length ? 'No matching events found' : 'No events created yet'}</h3>
+            <h3>{events.length ? 'No events match your criteria' : 'No events in database yet'}</h3>
             <p>
               {events.length
-                ? 'Try adjusting your search query or switching the date filter.'
-                : 'Get started by creating your first event using the button below.'}
+                ? 'Try clearing your search query or switching date filters.'
+                : 'Click below to create your very first event and start managing registrations.'}
             </p>
             {events.length ? (
               <button
                 type="button"
-                className="apple-btn-secondary"
+                className="btn-secondary-action"
                 onClick={() => {
                   setSearch('');
                   setFilter('all');
@@ -341,15 +348,15 @@ export default function Dashboard() {
                 Reset Filters
               </button>
             ) : (
-              <Link to="/events/new" className="apple-btn-primary">
+              <Link to="/events/new" className="btn-primary-action">
                 <Icon name="plus" size={16} />
-                <span>Create Event</span>
+                <span>Create First Event</span>
               </Link>
             )}
           </div>
         ) : (
-          <div className="table-responsive">
-            <table className="apple-table">
+          <div className="table-scroll-wrapper">
+            <table className="modern-data-table">
               <thead>
                 <tr>
                   <th scope="col" className="col-id">
@@ -383,21 +390,21 @@ export default function Dashboard() {
                       <td className="col-id">
                         <button
                           type="button"
-                          className="id-pill"
+                          className="id-tag-pill"
                           onClick={() => copyEventId(item._id)}
-                          title="Click to copy full ID"
+                          title="Click to copy full Event ID"
                         >
-                          <span className="id-hash">#</span>
-                          <span className="id-short">{item._id.slice(-6)}</span>
+                          <span className="id-prefix">#</span>
+                          <span className="id-code">{item._id.slice(-6)}</span>
                           <Icon name={copiedId === item._id ? 'check' : 'copy'} size={11} />
                         </button>
-                        {copiedId === item._id && <span className="copy-tooltip">Copied!</span>}
+                        {copiedId === item._id && <span className="copy-badge-tip">Copied!</span>}
                       </td>
 
                       {/* 2. Event Name & Description */}
                       <td className="col-name">
-                        <div className="event-info">
-                          <strong className="event-title">{item.name}</strong>
+                        <div className="event-info-stack">
+                          <strong className="event-title-main">{item.name}</strong>
                           {item.description && (
                             <p className="event-desc-snippet" title={item.description}>
                               {item.description}
@@ -408,39 +415,43 @@ export default function Dashboard() {
 
                       {/* 3. Event Date */}
                       <td className="col-date">
-                        <div className="date-block">
-                          <time dateTime={item.date ? item.date.slice(0, 10) : ''}>
+                        <div className="date-badge-stack">
+                          <time dateTime={item.date ? item.date.slice(0, 10) : ''} className="date-text">
                             {formatDate(item.date)}
                           </time>
-                          <span className={`date-badge ${isPast ? 'past' : 'upcoming'}`}>
-                            <span className="badge-dot" aria-hidden="true"></span>
-                            {isPast ? 'Past' : 'Upcoming'}
+                          <span className={`status-pill ${isPast ? 'past' : 'upcoming'}`}>
+                            <span className="pill-dot" aria-hidden="true"></span>
+                            {isPast ? 'Past Event' : 'Upcoming'}
                           </span>
                         </div>
                       </td>
 
                       {/* 4. Venue */}
                       <td className="col-venue">
-                        <div className="venue-cell">
-                          <Icon name="pin" size={14} />
-                          <span title={item.location}>{item.location}</span>
+                        <div className="venue-cell-content">
+                          <div className="venue-pin-wrap">
+                            <Icon name="pin" size={13} />
+                          </div>
+                          <span className="venue-name-text" title={item.location}>
+                            {item.location}
+                          </span>
                         </div>
                       </td>
 
                       {/* 5. Total Registrations */}
                       <td className="col-regs text-center">
-                        <span className="reg-badge">
+                        <span className="registration-pill">
                           <Icon name="users" size={13} />
-                          <strong className="reg-count">{item.totalReg || 0}</strong>
+                          <strong className="reg-number">{item.totalReg || 0}</strong>
                         </span>
                       </td>
 
                       {/* 6. Actions (Update & Delete) */}
                       <td className="col-actions text-right">
-                        <div className="action-buttons-group">
+                        <div className="action-btns-row">
                           <Link
                             to={`/events/${item._id}/edit`}
-                            className="btn-action edit"
+                            className="btn-action-pill edit-btn"
                             aria-label={`Update ${item.name}`}
                           >
                             <Icon name="edit" size={13} />
@@ -449,7 +460,7 @@ export default function Dashboard() {
 
                           <button
                             type="button"
-                            className="btn-action delete"
+                            className="btn-action-pill delete-btn"
                             disabled={isBeingDeleted}
                             onClick={() => handleDelete(item)}
                             aria-label={`Delete ${item.name}`}
@@ -468,9 +479,9 @@ export default function Dashboard() {
         )}
 
         {filteredEvents.length > 0 && (
-          <div className="table-footer-info">
+          <div className="table-footer-bar">
             <span>
-              Showing {filteredEvents.length} of {events.length}{' '}
+              Showing <strong>{filteredEvents.length}</strong> of <strong>{events.length}</strong>{' '}
               {events.length === 1 ? 'event' : 'events'}
             </span>
           </div>
@@ -478,13 +489,13 @@ export default function Dashboard() {
       </section>
 
       {/* Footer */}
-      <footer className="apple-footer">
-        <div className="footer-content">
-          <div className="footer-brand">
-            <Icon name="appleLogo" size={14} />
-            <span>Event Registration Admin Panel</span>
+      <footer className="dashboard-footer">
+        <div className="footer-flex">
+          <div className="footer-brand-tag">
+            <div className="footer-logo-dot"></div>
+            <span>Event Registration Admin Portal</span>
           </div>
-          <span className="footer-tech">MERN Stack · MongoDB Atlas · Express · React · Node</span>
+          <span className="footer-tech-stack">MERN Stack · MongoDB Atlas · Express.js · React · Node.js</span>
         </div>
       </footer>
     </div>

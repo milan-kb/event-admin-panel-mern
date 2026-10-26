@@ -99,7 +99,7 @@ export default function EventForm() {
     <div className="form-page-container">
       {/* Back button */}
       <div className="form-nav-back">
-        <Link to="/" className="apple-back-link">
+        <Link to="/" className="modern-back-link">
           <Icon name="back" size={15} />
           <span>Back to Dashboard</span>
         </Link>
@@ -107,17 +107,21 @@ export default function EventForm() {
 
       {/* Heading */}
       <section className="form-hero-header">
-        <h1 className="apple-title">{isEditing ? 'Update Event' : 'Add New Event'}</h1>
-        <p className="apple-subtitle">
+        <div className="hero-pill-badge indigo">
+          <Icon name="ticket" size={13} />
+          <span>{isEditing ? 'Modify Existing Event' : 'New Event Registration'}</span>
+        </div>
+        <h1 className="dashboard-title">{isEditing ? 'Update Event Details' : 'Create New Event'}</h1>
+        <p className="dashboard-subtitle">
           {isEditing
-            ? 'Modify details, venue, or schedule for this existing event.'
-            : 'Fill in the event credentials below to publish it to the dashboard.'}
+            ? 'Make changes to event schedule, location, or descriptive details below.'
+            : 'Fill in the information below to schedule and publish your new event.'}
         </p>
       </section>
 
       {/* Error alert */}
       {error && (
-        <div className="apple-toast error" role="alert">
+        <div className="app-toast error" role="alert">
           <div className="toast-icon">
             <Icon name="close" size={15} />
           </div>
@@ -126,28 +130,28 @@ export default function EventForm() {
       )}
 
       {loading ? (
-        <div className="apple-card form-loading-card">
+        <div className="form-card-container form-loading-card">
           <div className="skeleton-line lg"></div>
           <div className="skeleton-line md"></div>
           <div className="skeleton-line sm"></div>
         </div>
       ) : loadFailed ? (
-        <div className="apple-card empty-card text-center">
+        <div className="form-card-container empty-card text-center">
           <h3>Event not found</h3>
-          <p>The requested event could not be found or loaded.</p>
-          <Link to="/" className="apple-btn-primary">
+          <p>The requested event could not be located in the database.</p>
+          <Link to="/" className="btn-primary-action">
             Return to Dashboard
           </Link>
         </div>
       ) : (
         <div className="form-layout-grid">
           {/* Main Form */}
-          <div className="apple-card form-card">
-            <form onSubmit={handleSubmit} className="apple-event-form" noValidate>
+          <div className="form-card-container">
+            <form onSubmit={handleSubmit} className="modern-event-form" noValidate>
               {/* Field 1: Event Name */}
-              <div className="form-field-group">
+              <div className="input-field-group">
                 <label htmlFor="name" className="field-label">
-                  Event Name <span className="req-star">*</span>
+                  Event Name <span className="req-asterisk">*</span>
                 </label>
                 <input
                   id="name"
@@ -155,19 +159,19 @@ export default function EventForm() {
                   type="text"
                   required
                   maxLength={120}
-                  className="apple-input"
-                  placeholder="e.g. Annual Tech Summit 2026"
+                  className="modern-form-input"
+                  placeholder="e.g. Annual Tech Symposium 2026"
                   value={form.name}
                   onChange={handleChange}
                   autoFocus
                 />
-                <span className="field-hint">Give your event a clear, recognizable name.</span>
+                <span className="field-hint-text">A clear, engaging name for the event.</span>
               </div>
 
               {/* Field 2: Event Description */}
-              <div className="form-field-group">
+              <div className="input-field-group">
                 <label htmlFor="description" className="field-label">
-                  Event Description <span className="req-star">*</span>
+                  Event Description <span className="req-asterisk">*</span>
                 </label>
                 <textarea
                   id="description"
@@ -175,35 +179,35 @@ export default function EventForm() {
                   rows={4}
                   required
                   maxLength={3000}
-                  className="apple-textarea"
-                  placeholder="Describe the schedule, key speakers, target audience, and agenda..."
+                  className="modern-form-textarea"
+                  placeholder="Detail the agenda, key topics, guest speakers, prerequisites..."
                   value={form.description}
                   onChange={handleChange}
                 />
-                <span className="field-hint">Brief overview of what attendees should anticipate.</span>
+                <span className="field-hint-text">Brief outline of the event's purpose and expectations.</span>
               </div>
 
               {/* Fields 3 & 4: Date and Venue (2 columns) */}
-              <div className="form-row-two-col">
-                <div className="form-field-group">
+              <div className="form-two-column-row">
+                <div className="input-field-group">
                   <label htmlFor="date" className="field-label">
-                    Event Date <span className="req-star">*</span>
+                    Event Date <span className="req-asterisk">*</span>
                   </label>
                   <input
                     id="date"
                     name="date"
                     type="date"
                     required
-                    className="apple-input"
+                    className="modern-form-input"
                     value={form.date}
                     onChange={handleChange}
                   />
-                  <span className="field-hint">Scheduled date of occurrence.</span>
+                  <span className="field-hint-text">Date the event takes place.</span>
                 </div>
 
-                <div className="form-field-group">
+                <div className="input-field-group">
                   <label htmlFor="location" className="field-label">
-                    Venue <span className="req-star">*</span>
+                    Venue <span className="req-asterisk">*</span>
                   </label>
                   <input
                     id="location"
@@ -211,21 +215,21 @@ export default function EventForm() {
                     type="text"
                     required
                     maxLength={160}
-                    className="apple-input"
-                    placeholder="e.g. Main Auditorium, Block A"
+                    className="modern-form-input"
+                    placeholder="e.g. Auditorium Hall A, Campus 1"
                     value={form.location}
                     onChange={handleChange}
                   />
-                  <span className="field-hint">Physical hall or virtual platform link.</span>
+                  <span className="field-hint-text">Physical hall, room, or virtual platform URL.</span>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="form-actions-bar">
-                <Link to="/" className="apple-btn-secondary">
+              <div className="form-bottom-actions">
+                <Link to="/" className="btn-secondary-action">
                   Cancel
                 </Link>
-                <button type="submit" className="apple-btn-primary" disabled={saving}>
+                <button type="submit" className="btn-primary-action" disabled={saving}>
                   {saving ? (
                     <span>Saving…</span>
                   ) : (
@@ -240,46 +244,50 @@ export default function EventForm() {
           </div>
 
           {/* Live Preview Card */}
-          <aside className="form-preview-aside" aria-label="Live event card preview">
-            <div className="preview-label">Live Card Preview</div>
-            <div className="apple-card live-ticket-card">
-              <div className="ticket-header">
-                {form.date ? (
-                  <CalendarDate value={form.date} />
-                ) : (
-                  <div className="calendar-date-placeholder">
-                    <Icon name="calendar" size={24} />
+          <aside className="form-preview-column" aria-label="Live event card preview">
+            <div className="preview-header-label">Live Pass Preview</div>
+            <div className="live-event-pass-card">
+              <div className="pass-top-accent"></div>
+              <div className="pass-card-content">
+                <div className="pass-header-flex">
+                  {form.date ? (
+                    <CalendarDate value={form.date} />
+                  ) : (
+                    <div className="calendar-date-placeholder">
+                      <Icon name="calendar" size={24} />
+                    </div>
+                  )}
+                  <div className="pass-title-box">
+                    <span className="pass-badge">{isEditing ? 'Editing Mode' : 'New Event'}</span>
+                    <h4 className="pass-event-title">{form.name.trim() || 'Your Event Title Here'}</h4>
                   </div>
-                )}
-                <div className="ticket-title-group">
-                  <span className="ticket-tag">{isEditing ? 'Editing Mode' : 'New Event'}</span>
-                  <h4 className="ticket-title">{form.name.trim() || 'Your Event Title Here'}</h4>
                 </div>
-              </div>
 
-              <div className="ticket-body">
-                <p className="ticket-desc">
+                <div className="pass-divider"></div>
+
+                <p className="pass-description-text">
                   {form.description.trim() ||
                     'Event description will dynamically preview here as you type in the form.'}
                 </p>
 
-                <div className="ticket-meta-row">
-                  <div className="ticket-meta-item">
+                <div className="pass-meta-strip">
+                  <div className="pass-meta-item">
                     <Icon name="pin" size={13} />
                     <span>{form.location.trim() || 'Venue location'}</span>
                   </div>
-                  <div className="ticket-meta-item">
+                  <div className="pass-meta-item">
                     <Icon name="users" size={13} />
-                    <span>0 Registrations</span>
+                    <span>0 Registered</span>
                   </div>
                 </div>
-              </div>
 
-              <div className="ticket-footer">
-                <span className="ticket-footnote">
-                  <Icon name="appleLogo" size={12} />
-                  <span>Event Registration Admin</span>
-                </span>
+                <div className="pass-footer-strip">
+                  <div className="pass-brand-tag">
+                    <Icon name="ticket" size={13} />
+                    <span>EventHub Portal</span>
+                  </div>
+                  <span className="pass-status-pill">Active Draft</span>
+                </div>
               </div>
             </div>
           </aside>

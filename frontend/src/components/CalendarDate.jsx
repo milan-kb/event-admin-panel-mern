@@ -6,10 +6,10 @@ export default function CalendarDate({ value }) {
   const weekday = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
 
   return (
-    <time className="apple-calendar-badge" dateTime={typeof value === 'string' ? value.slice(0, 10) : ''}>
-      <span className="cal-header">{month}</span>
-      <span className="cal-day">{day}</span>
-      <span className="cal-footer">{weekday}</span>
+    <time className="calendar-date-card" dateTime={typeof value === 'string' ? value.slice(0, 10) : ''}>
+      <span className="cal-top-bar">{month}</span>
+      <span className="cal-day-num">{day}</span>
+      <span className="cal-weekday-text">{weekday}</span>
     </time>
   );
 }

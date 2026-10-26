@@ -18,16 +18,16 @@ export default function App() {
         : pathname.endsWith('/edit')
         ? 'Update Event'
         : 'Page Not Found';
-    document.title = `${pageTitle} · Event Admin`;
+    document.title = `${pageTitle} · EventHub Admin`;
   }, [pathname]);
 
   return (
-    <div className="apple-app-layout">
+    <div className="app-root-layout">
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
       <Navbar />
-      <main className="apple-main-content" id="main-content">
+      <main className="app-main-content" id="main-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/events/new" element={<EventForm key="new" />} />
@@ -35,13 +35,13 @@ export default function App() {
           <Route
             path="*"
             element={
-              <div className="apple-empty-state not-found-card">
-                <div className="empty-state-icon">
-                  <Icon name="close" size={32} />
+              <div className="modern-empty-state not-found-card">
+                <div className="empty-state-icon-circle">
+                  <Icon name="close" size={30} />
                 </div>
                 <h2>Page Not Found</h2>
                 <p>The screen or event you requested does not exist or has been relocated.</p>
-                <Link to="/" className="apple-btn-primary">
+                <Link to="/" className="btn-primary-action">
                   <span>Back to Dashboard</span>
                 </Link>
               </div>
